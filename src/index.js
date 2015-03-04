@@ -533,13 +533,21 @@ Zlib.prototype._processChunk = function(chunk, flushFlag, cb) {
     return buf;
   }
 
-  var req = this._binding.write(flushFlag,
-                                chunk, // in
-                                inOff, // in_off
-                                availInBefore, // in_len
-                                this._buffer, // out
-                                this._offset, //out_off
-                                availOutBefore); // out_len
+  var req = this._binding;
+
+  try {
+    req = this._binding.write(flushFlag,
+                                  chunk, // in
+                                  inOff, // in_off
+                                  availInBefore, // in_len
+                                  this._buffer, // out
+                                  this._offset, //out_off
+                                  availOutBefore); // out_len
+  } catch (e) {
+    if (e.message != 'close is pending')
+      throw e;
+      return this._binding.close();
+  }
 
   req.buffer = chunk;
   req.callback = callback;
